@@ -13,92 +13,92 @@ var (
 	ErrQmcKeyLength       = errors.New("unexpected decoded qmc key length")
 )
 
-type Decoder struct {
-	file         []byte
-	maskDetector func(encodedData []byte) (*Key256Mask, error)
-	mask         *Key256Mask
-	audioExt     string
-	key          []byte
-	audio        []byte
-}
+// type Decoder struct {
+// 	file         []byte
+// 	maskDetector func(encodedData []byte) (*Key256Mask, error)
+// 	mask         *Key256Mask
+// 	audioExt     string
+// 	key          []byte
+// 	audio        []byte
+// }
 
-func NewMflac256Decoder(data []byte) common.Decoder {
-	return &Decoder{file: data, maskDetector: detectMflac256Mask, audioExt: "flac"}
-}
+// func NewMflac256Decoder(data []byte) common.Decoder {
+// 	return &Decoder{file: data, maskDetector: detectMflac256Mask, audioExt: "flac"}
+// }
 
-func NewMgg256Decoder(data []byte) common.Decoder {
-	return &Decoder{file: data, maskDetector: detectMgg256Mask, audioExt: "ogg"}
-}
+// func NewMgg256Decoder(data []byte) common.Decoder {
+// 	return &Decoder{file: data, maskDetector: detectMgg256Mask, audioExt: "ogg"}
+// }
 
-func (d *Decoder) Validate() error {
-	if nil != d.mask {
-		return nil
-	}
-	if nil != d.maskDetector {
-		if err := d.validateKey(); err != nil {
-			return err
-		}
-		var err error
-		d.mask, err = d.maskDetector(d.file)
-		return err
-	}
-	return errors.New("no mask or mask detector found")
-}
+// func (d *Decoder) Validate() error {
+// 	if nil != d.mask {
+// 		return nil
+// 	}
+// 	if nil != d.maskDetector {
+// 		if err := d.validateKey(); err != nil {
+// 			return err
+// 		}
+// 		var err error
+// 		d.mask, err = d.maskDetector(d.file)
+// 		return err
+// 	}
+// 	return errors.New("no mask or mask detector found")
+// }
 
-func (d *Decoder) validateKey() error {
-	lenData := len(d.file)
-	if lenData < 4 {
-		return ErrQmcFileLength
-	}
+// func (d *Decoder) validateKey() error {
+// 	lenData := len(d.file)
+// 	if lenData < 4 {
+// 		return ErrQmcFileLength
+// 	}
 
-	keyLen := binary.LittleEndian.Uint32(d.file[lenData-4:])
-	if lenData < int(keyLen+4) {
-		return ErrQmcFileLength
-	}
-	var err error
-	d.key, err = base64.StdEncoding.DecodeString(
-		string(d.file[lenData-4-int(keyLen) : lenData-4]))
-	if err != nil {
-		return ErrQmcKeyDecodeFailed
-	}
+// 	keyLen := binary.LittleEndian.Uint32(d.file[lenData-4:])
+// 	if lenData < int(keyLen+4) {
+// 		return ErrQmcFileLength
+// 	}
+// 	var err error
+// 	d.key, err = base64.StdEncoding.DecodeString(
+// 		string(d.file[lenData-4-int(keyLen) : lenData-4]))
+// 	if err != nil {
+// 		return ErrQmcKeyDecodeFailed
+// 	}
 
-	if len(d.key) != 272 {
-		return ErrQmcKeyLength
-	}
-	d.file = d.file[:lenData-4-int(keyLen)]
-	return nil
+// 	if len(d.key) != 272 {
+// 		return ErrQmcKeyLength
+// 	}
+// 	d.file = d.file[:lenData-4-int(keyLen)]
+// 	return nil
 
-}
+// }
 
-func (d *Decoder) Decode() error {
-	d.audio = d.mask.Decrypt(d.file)
-	return nil
-}
+// func (d *Decoder) Decode() error {
+// 	d.audio = d.mask.Decrypt(d.file)
+// 	return nil
+// }
 
-func (d Decoder) GetCoverImage() []byte {
-	return nil
-}
+// func (d Decoder) GetCoverImage() []byte {
+// 	return nil
+// }
 
-func (d Decoder) GetAudioData() []byte {
-	return d.audio
-}
+// func (d Decoder) GetAudioData() []byte {
+// 	return d.audio
+// }
 
-func (d Decoder) GetAudioExt() string {
-	if d.audioExt != "" {
-		return "." + d.audioExt
-	}
-	return ""
-}
+// func (d Decoder) GetAudioExt() string {
+// 	if d.audioExt != "" {
+// 		return "." + d.audioExt
+// 	}
+// 	return ""
+// }
 
-func (d Decoder) GetMeta() common.Meta {
-	return nil
-}
+// func (d Decoder) GetMeta() common.Meta {
+// 	return nil
+// }
 
-func DecoderFuncWithExt(ext string) common.NewDecoderFunc {
-	return func(file []byte) common.Decoder {
-		return &Decoder{file: file, audioExt: ext, mask: getDefaultMask()}
-	}
-}
+// func DecoderFuncWithExt(ext string) common.NewDecoderFunc {
+// 	return func(file []byte) common.Decoder {
+// 		return &Decoder{file: file, audioExt: ext, mask: getDefaultMask()}
+// 	}
+// }
 
 //goland:noinspection SpellCheckingInspection
 func init() {
